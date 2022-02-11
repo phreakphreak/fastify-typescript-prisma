@@ -1,28 +1,67 @@
-import Fastify from "fastify";
+import Fastify, { FastifyInstance, RouteShorthandOptions } from "fastify";
+import { Server, IncomingMessage, ServerResponse } from "http";
 
-const fastifyInstance = Fastify({
-  logger: true,
-});
+import { AddressInfo } from "net";
 
-fastifyInstance.get("/", async (request, reply) => {
-  return { hello: "world" };
-});
+const server: FastifyInstance<Server, IncomingMessage, ServerResponse> =
+  Fastify({});
 
-fastifyInstance.post("/", async (request, reply) => {
+const routeOptions: RouteShorthandOptions = {
+  schema: {
+    response: {
+      200: {
+        type: "object",
+        properties: {
+          world: {
+            type: "string",
+          },
+          hello: {
+            type: "string",
+          },
+          products: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: {
+                  type: "string",
+                },
+                price: {
+                  type: "number",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+server.get("/hello", routeOptions, async (request, reply) => {
+  const products = [...Array(10)].map((_, i) => ({
+    name: `Product ${i}`,
+    price: i * 10,
+  }));
+
   return {
-    hello: "world",
-    body: request.body,
-    type: "post",
+    world: " world",
+    hello: "hello",
+    products,
   };
 });
 
 const start = async () => {
   try {
-    await fastifyInstance.listen(3000);
+    await server.listen(3000);
+
+    const address: string | AddressInfo = server.server.address();
+    const port = typeof address === "string" ? address : address?.port;
+
+    console.log(`server listening on http://localhost:${port}`);
   } catch (err) {
-    fastifyInstance.log.error(err);
+    server.log.error(err);
     process.exit(1);
   }
 };
-
 start();
