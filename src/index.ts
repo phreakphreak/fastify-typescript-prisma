@@ -3,7 +3,7 @@ import { Server, IncomingMessage, ServerResponse } from "http";
 
 import { AddressInfo } from "net";
 
-const server: FastifyInstance<Server, IncomingMessage, ServerResponse> =
+const fastify: FastifyInstance<Server, IncomingMessage, ServerResponse> =
   Fastify({});
 
 const routeOptions: RouteShorthandOptions = {
@@ -38,7 +38,7 @@ const routeOptions: RouteShorthandOptions = {
   },
 };
 
-server.get("/hello", routeOptions, async (request, reply) => {
+fastify.get("/hello", routeOptions, async (request, reply) => {
   const products = [...Array(10)].map((_, i) => ({
     name: `Product ${i}`,
     price: i * 10,
@@ -53,14 +53,14 @@ server.get("/hello", routeOptions, async (request, reply) => {
 
 const start = async () => {
   try {
-    await server.listen(3000);
+    await fastify.listen(3000);
 
-    const address: string | AddressInfo = server.server.address();
+    const address: string | AddressInfo = fastify.server.address();
     const port = typeof address === "string" ? address : address?.port;
 
     console.log(`server listening on http://localhost:${port}`);
   } catch (err) {
-    server.log.error(err);
+    fastify.log.error(err);
     process.exit(1);
   }
 };
